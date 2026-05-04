@@ -3,9 +3,8 @@ name: Windows headless build
 on:
   push:
     branches:
-      - win-build
+      - master
   pull_request:
-  workflow_dispatch:
 
 permissions:
   contents: read
