@@ -43,36 +43,29 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install meson ninja
 
-      - name: Prepare vcpkg
-        shell: pwsh
-        run: |
-          if (-not $env:VCPKG_ROOT) {
-            $env:VCPKG_ROOT = Join-Path $env:RUNNER_TEMP "vcpkg"
-            git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
-          }
-
-          if (-not (Test-Path (Join-Path $env:VCPKG_ROOT "vcpkg.exe"))) {
-            & (Join-Path $env:VCPKG_ROOT "bootstrap-vcpkg.bat") -disableMetrics
-          }
-
-          "VCPKG_ROOT=$env:VCPKG_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ runner.temp }}/vcpkg'
 
       - name: Install native dependencies
         shell: pwsh
         run: |
           $triplet = "${{ matrix.vcpkg-triplet }}"
-          & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet $triplet `
+          $vcpkgRoot = Join-Path $env:RUNNER_TEMP "vcpkg"
+          & "$vcpkgRoot\vcpkg.exe" install --triplet $triplet `
             pkgconf `
             libxml2 `
             libxslt `
             zlib `
             libmagic `
-            xapian-core `
+            xapian `
             libiconv
 
-          $installed = Join-Path $env:VCPKG_ROOT "installed\$triplet"
+          $installed = Join-Path $vcpkgRoot "installed\$triplet"
           $pkgconf = Join-Path $installed "tools\pkgconf\pkgconf.exe"
 
+          "VCPKG_ROOT=$vcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
           (Join-Path $installed "bin") | Out-File -FilePath $env:GITHUB_PATH -Append
           "CC=cl" | Out-File -FilePath $env:GITHUB_ENV -Append
           "CXX=cl" | Out-File -FilePath $env:GITHUB_ENV -Append
