@@ -61,7 +61,7 @@ jobs:
           vcpkgDirectory: '${{ github.workspace }}/.vcpkg'
           vcpkgGitCommitId: cf9b6f1a47898a888f9e86e346a9adfa68357380
           runVcpkgInstall: true
-          vcpkgJsonGlob: '.github/vcpkg/vcpkg.json'
+          vcpkgJsonGlob: 'vcpkg.json'
           runVcpkgFormatString: '[`install`, `--recurse`, `--clean-after-build`, `--x-install-root`, `$[env.VCPKG_INSTALLED_DIR]`, `--triplet`, `$[env.VCPKG_DEFAULT_TRIPLET]`, `--overlay-triplets`, `$[env.VCPKG_OVERLAY_TRIPLETS]`]'
 
       - name: Configure native dependency environment
