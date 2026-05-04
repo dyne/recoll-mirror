@@ -187,12 +187,10 @@ jobs:
           merge-multiple: true
 
       - name: Publish GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: recoll-headless-${{ github.sha }}
-        run: |
-          gh release create "$RELEASE_TAG" release-assets/*.zip \
-            --repo "${{ github.repository }}" \
-            --title "Recoll headless Windows ${{ github.sha }}" \
-            --notes "Native Windows headless build from commit ${{ github.sha }}." \
-            --target "${{ github.sha }}"
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: recoll-headless-${{ github.sha }}
+          name: Recoll headless Windows ${{ github.sha }}
+          body: Native Windows headless build from commit ${{ github.sha }}.
+          target_commitish: ${{ github.sha }}
+          files: release-assets/*.zip
