@@ -1,0 +1,14 @@
+{
+  "name": "recoll-headless-ci",
+  "version-string": "1.43.14",
+  "builtin-baseline": "cf9b6f1a47898a888f9e86e346a9adfa68357380",
+  "dependencies": [
+    "pkgconf",
+    "libxml2",
+    "libxslt",
+    "zlib",
+    "libmagic",
+    "xapian",
+    "libiconv"
+  ]
+}
