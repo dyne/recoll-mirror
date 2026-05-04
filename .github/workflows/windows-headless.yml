@@ -20,10 +20,12 @@ jobs:
           - arch: x86_64
             runner: windows-latest
             vcpkg-triplet: x64-windows
+            msvc-arch: x64
             python-architecture: x64
           - arch: arm64
             runner: windows-11-arm
             vcpkg-triplet: arm64-windows
+            msvc-arch: arm64
             python-architecture: arm64
 
     steps:
@@ -42,6 +44,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install meson ninja
+
+      - name: Set up MSVC developer command prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc-arch }}
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
