@@ -107,11 +107,6 @@ defineslist =     [
 
 if host_machine.system() == 'windows'
     defineslist += '-D__WIN32__'
-    if host_machine.cpu_family() == 'aarch64'
-        # Avoid ARM64 COFF PAGEOFFSET relocation failures when linking references
-        # to externally defined global data such as Xapian::Query::MatchAll.
-        defineslist += '/Gw-'
-    endif
     librecolldeps += cpp.find_library('Shlwapi', required: true)
 endif
 
