@@ -155,9 +155,43 @@ jobs:
           $pythonRoot = Join-Path $dist "python"
           python -c "import os, sys; os.add_dll_directory(r'$dist'); sys.path.insert(0, r'$pythonRoot'); import recoll.recoll; print('python module ok')"
 
+      - name: Create release archive
+        shell: pwsh
+        working-directory: src
+        run: |
+          $dist = Resolve-Path "dist\recoll-headless-${{ matrix.arch }}"
+          $archive = Join-Path (Resolve-Path "dist") "recoll-headless-windows-${{ matrix.arch }}.zip"
+          Compress-Archive -Path "$dist\*" -DestinationPath $archive -Force
+
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
           name: recoll-headless-windows-${{ matrix.arch }}
-          path: src/dist/recoll-headless-${{ matrix.arch }}
+          path: src/dist/recoll-headless-windows-${{ matrix.arch }}.zip
           if-no-files-found: error
+
+  release:
+    name: Publish Windows release
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: recoll-headless-windows-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: recoll-headless-${{ github.sha }}
+        run: |
+          gh release create "$RELEASE_TAG" release-assets/*.zip \
+            --title "Recoll headless Windows ${{ github.sha }}" \
+            --notes "Native Windows headless build from commit ${{ github.sha }}." \
+            --target "${{ github.sha }}"
