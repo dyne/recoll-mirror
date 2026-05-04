@@ -15,7 +15,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #include <stdio.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include <string>
 
@@ -27,6 +29,9 @@ using namespace std;
 
 bool rclionice(const string& clss, const string& cdata)
 {
+#ifdef _WIN32
+    return false;
+#else
     string ionicexe;
     if (!ExecCmd::which("ionice", ionicexe)) {
         // ionice not found, bail out
@@ -53,4 +58,5 @@ bool rclionice(const string& clss, const string& cdata)
         return false;
     }
     return true;
+#endif
 }

@@ -100,6 +100,11 @@ static const char *maxXapClauseMsg =
 static const char *maxXapClauseCaseDiacMsg = 
     "Or try to use case (C) or diacritics (D) sensitivity qualifiers, or less wildcards ?";
 
+static Xapian::Query makeMatchAllQuery()
+{
+    return Xapian::Query(string());
+}
+
 
 // Walk the clauses list, translate each and add to top Xapian Query
 bool SearchData::clausesToQuery(
@@ -145,7 +150,7 @@ bool SearchData::clausesToQuery(
         }
         if (xq.empty()) {
             if (op == Xapian::Query::OP_AND_NOT)
-                xq = Xapian::Query(op, Xapian::Query::MatchAll, nq);
+                xq = Xapian::Query(op, makeMatchAllQuery(), nq);
             else 
                 xq = nq;
         } else {
@@ -163,7 +168,7 @@ bool SearchData::clausesToQuery(
     LOGDEB0("SearchData::clausesToQuery: got " << xq.get_length()<<" clauses\n");
 
     if (xq.empty())
-        xq = Xapian::Query::MatchAll;
+        xq = makeMatchAllQuery();
 
     *((Xapian::Query *)d) = xq;
     return true;

@@ -105,6 +105,11 @@ defineslist =     [
         '-DRECOLL_DATADIR="' + recoll_datadir + '"',
     ]
 
+if host_machine.system() == 'windows'
+    defineslist += '-D__WIN32__'
+    librecolldeps += cpp.find_library('Shlwapi', required: true)
+endif
+
 if get_option('ext4-birthtime')
 # Enable the statx use in pathut.cpp. Only needed for the lib.
     defineslist += '-DENABLE_STATX'
@@ -163,6 +168,8 @@ elif cpp.compiles(
     args: ['-Werror', '-O'], # -O needed, else warnings with _FORTIFY_SOURCE
     name: 'ICONV NOT CONST',
 )
+    recoll_conf.set('ICONV_CONST', '')
+else
     recoll_conf.set('ICONV_CONST', '')
 endif
 
@@ -294,7 +301,6 @@ librecoll_sources = [
     'common/unacpp.cpp',
     'common/webstore.cpp',
     'index/webqueuefetcher.cpp',
-    'index/checkretryfailed.cpp',
     'index/exefetcher.cpp',
     'index/fetcher.cpp',
     'index/fsfetcher.cpp',
@@ -360,7 +366,6 @@ librecoll_sources = [
     'utils/copyfile.cpp',
     'utils/cpuconf.cpp',
     'utils/ecrontab.cpp',
-    'utils/execmd.cpp',
     'utils/fileudi.cpp',
     'utils/fstreewalk.cpp',
     'utils/idfile.cpp',
@@ -370,7 +375,6 @@ librecoll_sources = [
     'utils/md5ut.cpp',
     'utils/mimeparse.cpp',
     'utils/miniz.cpp',
-    'utils/netcon.cpp',
     'utils/pathut.cpp',
     'utils/powerstatus.cpp',
     'utils/pxattr.cpp',
@@ -388,6 +392,20 @@ librecoll_sources = [
 if host_machine.system() == 'darwin'
     librecoll_sources += 'internfile/finderxattr.cpp'
 endif
+if host_machine.system() == 'windows'
+    librecoll_sources += [
+        'windows/execmd_w.cpp',
+        'windows/fnmatch.c',
+        'windows/getopt.cc',
+        'windows/strptime.cpp',
+        'windows/wincodepages.cpp',
+    ]
+else
+    librecoll_sources += [
+        'utils/execmd.cpp',
+        'utils/netcon.cpp',
+    ]
+endif
 librecoll_incdir = include_directories(
     'aspell',
     'bincimapmime',
@@ -398,20 +416,32 @@ librecoll_incdir = include_directories(
     'rcldb',
     'unac',
     'utils',
+    'windows',
     'xaposix',
 )
 
 if librecoll_needed
-    librecoll = library(
-        'librecoll',
-        librecoll_sources,
-        name_prefix: '',
-        soversion: recoll_soversion,
-        version: meson.project_version(),
-        include_directories: librecoll_incdir,
-        dependencies: librecolldeps,
-        install: true,
-    )
+    if host_machine.system() == 'windows'
+        librecoll = static_library(
+            'librecoll',
+            librecoll_sources,
+            name_prefix: '',
+            include_directories: librecoll_incdir,
+            dependencies: librecolldeps,
+            install: true,
+        )
+    else
+        librecoll = library(
+            'librecoll',
+            librecoll_sources,
+            name_prefix: '',
+            soversion: recoll_soversion,
+            version: meson.project_version(),
+            include_directories: librecoll_incdir,
+            dependencies: librecolldeps,
+            install: true,
+        )
+    endif
     librecoll_headers = files(
     'common/plaintorich.h',
     'common/rclconfig.h',
@@ -443,6 +473,7 @@ if get_option('indexer')
 
     recollindex_sources = [
         'index/checkindexed.cpp',
+        'index/checkretryfailed.cpp',
         'index/fsindexer.cpp',
         'index/indexer.cpp',
         'index/rclmonprc.cpp',
@@ -517,7 +548,6 @@ py_mod = import('python')
 python = py_mod.find_installation(
     'python3',
 )
-py3_dep = dependency('python3', required: true)
 
 if get_option('python-module')
     subdir('python/recoll')

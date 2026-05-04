@@ -1,0 +1,197 @@
+name: Windows headless build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Windows ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: windows-latest
+            vcpkg-triplet: x64-windows-release
+            msvc-arch: x64
+            python-architecture: x64
+          - arch: arm64
+            runner: windows-11-arm
+            vcpkg-triplet: arm64-windows-release
+            msvc-arch: arm64
+            python-architecture: arm64
+
+    env:
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg-triplet }}
+      VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.vcpkg-triplet }}
+      VCPKG_INSTALLED_DIR: ${{ github.workspace }}/vcpkg_installed
+      VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/.github/vcpkg-triplets
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+          architecture: ${{ matrix.python-architecture }}
+          check-latest: true
+
+      - name: Install Meson and Ninja
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja
+
+      - name: Set up MSVC developer command prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc-arch }}
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/.vcpkg'
+          vcpkgGitCommitId: cf9b6f1a47898a888f9e86e346a9adfa68357380
+          runVcpkgInstall: true
+          vcpkgJsonGlob: 'vcpkg.json'
+          runVcpkgFormatString: '[`install`, `--recurse`, `--clean-after-build`, `--x-install-root`, `$[env.VCPKG_INSTALLED_DIR]`, `--triplet`, `$[env.VCPKG_DEFAULT_TRIPLET]`, `--host-triplet`, `$[env.VCPKG_DEFAULT_HOST_TRIPLET]`, `--overlay-triplets`, `$[env.VCPKG_OVERLAY_TRIPLETS]`]'
+
+      - name: Configure native dependency environment
+        shell: pwsh
+        run: |
+          $triplet = "${{ matrix.vcpkg-triplet }}"
+          $installed = Join-Path $env:VCPKG_INSTALLED_DIR $triplet
+          $pkgconf = Join-Path $installed "tools\pkgconf\pkgconf.exe"
+
+          "VCPKG_ROOT=$env:RUNVCPKG_VCPKG_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          (Join-Path $installed "bin") | Out-File -FilePath $env:GITHUB_PATH -Append
+          "CC=cl" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "CXX=cl" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "INCLUDE=$(Join-Path $installed 'include');$env:INCLUDE" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "LIB=$(Join-Path $installed 'lib');$env:LIB" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PKG_CONFIG=$pkgconf" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PKG_CONFIG_PATH=$(Join-Path $installed 'lib\pkgconfig');$(Join-Path $installed 'share\pkgconfig')" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Configure headless build
+        shell: pwsh
+        working-directory: src
+        run: |
+          meson setup build-headless `
+            --backend ninja `
+            --buildtype release `
+            --prefix C:/recoll-headless `
+            -Dqtgui=false `
+            -Drecollq=true `
+            -Dpython-module=true `
+            -Dpython-chm=false `
+            -Dpython-aspell=false `
+            -Daspell=false `
+            -Dsemantic=false `
+            -Dx11mon=false `
+            -Dsystemd=false `
+            -Dinotify=false `
+            -Dfam=false `
+            -Dfsevents=false `
+            -Dlibmagic=true `
+            -Didxthreads=false
+
+      - name: Build headless binaries
+        shell: pwsh
+        working-directory: src
+        run: meson compile -C build-headless
+
+      - name: Package binaries
+        shell: pwsh
+        working-directory: src
+        run: |
+          $triplet = "${{ matrix.vcpkg-triplet }}"
+          $dist = Join-Path $PWD "dist\recoll-headless-${{ matrix.arch }}"
+          $pythonPackage = Join-Path $dist "python\recoll"
+          New-Item -ItemType Directory -Force $dist, $pythonPackage | Out-Null
+
+          Copy-Item "build-headless\recollq.exe" $dist
+          Copy-Item "build-headless\recollindex.exe" $dist
+          Copy-Item "build-headless\python\recoll\_recoll*.pyd" $pythonPackage
+          Copy-Item "python\recoll\recoll\*.py" $pythonPackage
+
+          $vcpkgBin = Join-Path $env:VCPKG_INSTALLED_DIR "$triplet\bin"
+          if (Test-Path $vcpkgBin) {
+            Copy-Item "$vcpkgBin\*.dll" $dist -ErrorAction SilentlyContinue
+            Copy-Item "$vcpkgBin\*.dll" $pythonPackage -ErrorAction SilentlyContinue
+          }
+
+          @"
+          Recoll native Windows headless build for ${{ matrix.arch }}.
+
+          Command-line tools:
+            recollq.exe
+            recollindex.exe
+
+          Python package:
+            Add this artifact's python directory to PYTHONPATH.
+            The packaged DLLs must remain beside the executables and _recoll*.pyd.
+          "@ | Set-Content -Path (Join-Path $dist "README-windows-build.txt")
+
+      - name: Smoke test packaged binaries
+        shell: pwsh
+        working-directory: src
+        run: |
+          $dist = Resolve-Path "dist\recoll-headless-${{ matrix.arch }}"
+          & "$dist\recollindex.exe" -h
+          & "$dist\recollq.exe" -h
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
+            exit $LASTEXITCODE
+          }
+
+          $pythonRoot = Join-Path $dist "python"
+          python -c "import os, sys; os.add_dll_directory(r'$dist'); sys.path.insert(0, r'$pythonRoot'); import recoll.recoll; print('python module ok')"
+
+      - name: Create release archive
+        shell: pwsh
+        working-directory: src
+        run: |
+          $dist = Resolve-Path "dist\recoll-headless-${{ matrix.arch }}"
+          $archive = Join-Path (Resolve-Path "dist") "recoll-headless-windows-${{ matrix.arch }}.zip"
+          Compress-Archive -Path "$dist\*" -DestinationPath $archive -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: recoll-headless-windows-${{ matrix.arch }}
+          path: src/dist/recoll-headless-windows-${{ matrix.arch }}.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish Windows release
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: recoll-headless-windows-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: recoll-headless-${{ github.sha }}
+        run: |
+          gh release create "$RELEASE_TAG" release-assets/*.zip \
+            --title "Recoll headless Windows ${{ github.sha }}" \
+            --notes "Native Windows headless build from commit ${{ github.sha }}." \
+            --target "${{ github.sha }}"
