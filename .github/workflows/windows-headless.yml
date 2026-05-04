@@ -192,6 +192,7 @@ jobs:
           RELEASE_TAG: recoll-headless-${{ github.sha }}
         run: |
           gh release create "$RELEASE_TAG" release-assets/*.zip \
+            --repo "${{ github.repository }}" \
             --title "Recoll headless Windows ${{ github.sha }}" \
             --notes "Native Windows headless build from commit ${{ github.sha }}." \
             --target "${{ github.sha }}"
