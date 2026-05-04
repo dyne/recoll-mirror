@@ -38,6 +38,7 @@ foreach v : py3versions
         include_directories: pyrecoll_incdir,
         dependencies: python_installation.dependency(),
         link_with: librecoll,
+        override_options: ['cpp_std=c++20'],
         install: true,
         subdir: 'recoll',
     )

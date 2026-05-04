@@ -207,7 +207,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd , UINT msg , WPARAM wParam, LPARAM lParam
     }
     break;
     default:
-        return DefWindowProc(hwnd, msg, wParam, lParam);
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
     return TRUE;
 }
@@ -215,16 +215,16 @@ LRESULT CALLBACK MainWndProc(HWND hwnd , UINT msg , WPARAM wParam, LPARAM lParam
 bool CreateInvisibleWindow()
 {
     HWND hwnd;
-    WNDCLASS wc = {0,0,0,0,0,0,0,0,0,0};
+    WNDCLASSW wc = {0,0,0,0,0,0,0,0,0,0};
 
     wc.lpfnWndProc = (WNDPROC)MainWndProc;
     wc.hInstance = GetModuleHandle(NULL);
-    wc.hIcon = LoadIcon(GetModuleHandle(NULL), L"TestWClass");
+    wc.hIcon = LoadIconW(GetModuleHandle(NULL), L"TestWClass");
     wc.lpszClassName = L"TestWClass";
-    RegisterClass(&wc);
+    RegisterClassW(&wc);
 
     hwnd =
-        CreateWindowEx(0, L"TestWClass", L"TestWClass", WS_OVERLAPPEDWINDOW,
+        CreateWindowExW(0, L"TestWClass", L"TestWClass", WS_OVERLAPPEDWINDOW,
                        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                        CW_USEDEFAULT, (HWND) NULL, (HMENU) NULL,
                        GetModuleHandle(NULL), (LPVOID) NULL);

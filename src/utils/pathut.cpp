@@ -179,7 +179,7 @@ static time_t FileTimeToUnixTime(const FILETIME *ft)
 
 // Populate our close-to-POSIX PathStat struct from Windows FIND_DATA, as returned from
 // e.g. Find(First/Next)FileW()
-void MapWinFindDataToStat(const WIN32_FIND_DATA *fd, struct PathStat *pstp)
+void MapWinFindDataToStat(const WIN32_FIND_DATAW *fd, struct PathStat *pstp)
 {
     memset(pstp, 0, sizeof(struct PathStat));
     pstp->pst_size = ((unsigned __int64)fd->nFileSizeHigh << 32) | fd->nFileSizeLow;
