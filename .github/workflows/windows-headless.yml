@@ -30,6 +30,7 @@ jobs:
 
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg-triplet }}
+      VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.vcpkg-triplet }}
       VCPKG_INSTALLED_DIR: ${{ github.workspace }}/vcpkg_installed
       VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/.github/vcpkg-triplets
 
@@ -62,7 +63,7 @@ jobs:
           vcpkgGitCommitId: cf9b6f1a47898a888f9e86e346a9adfa68357380
           runVcpkgInstall: true
           vcpkgJsonGlob: 'vcpkg.json'
-          runVcpkgFormatString: '[`install`, `--recurse`, `--clean-after-build`, `--x-install-root`, `$[env.VCPKG_INSTALLED_DIR]`, `--triplet`, `$[env.VCPKG_DEFAULT_TRIPLET]`, `--overlay-triplets`, `$[env.VCPKG_OVERLAY_TRIPLETS]`]'
+          runVcpkgFormatString: '[`install`, `--recurse`, `--clean-after-build`, `--x-install-root`, `$[env.VCPKG_INSTALLED_DIR]`, `--triplet`, `$[env.VCPKG_DEFAULT_TRIPLET]`, `--host-triplet`, `$[env.VCPKG_DEFAULT_HOST_TRIPLET]`, `--overlay-triplets`, `$[env.VCPKG_OVERLAY_TRIPLETS]`]'
 
       - name: Configure native dependency environment
         shell: pwsh
