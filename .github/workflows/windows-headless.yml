@@ -123,6 +123,7 @@ jobs:
           Copy-Item "build-headless\python\recoll\_recoll*.pyd" $pythonPackage
           Copy-Item "python\recoll\recoll\*.py" $pythonPackage
           Copy-Item "sampleconf" (Join-Path $dist "sampleconf") -Recurse -Force
+          Copy-Item "..\docs" (Join-Path $dist "docs") -Recurse -Force
 
           $vcpkgBin = Join-Path $env:VCPKG_INSTALLED_DIR "$triplet\bin"
           if (Test-Path $vcpkgBin) {
@@ -136,6 +137,9 @@ jobs:
           Command-line tools:
             recollq.exe
             recollindex.exe
+
+          Documentation:
+            See the docs directory.
 
           Python package:
             Add this artifact's python directory to PYTHONPATH.
