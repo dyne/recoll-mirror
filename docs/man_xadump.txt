@@ -1,0 +1,53 @@
+                                     XADUMP
+
+   NAME
+   SYNOPSIS
+   DESCRIPTION
+
+   ══════════════════════════════════════════════════════════════════════════
+
+NAME
+
+   xadump - low level access to a Recoll Xapian index.
+
+SYNOPSIS
+
+   xadump [ -d <dbdir> ] [ -e <outputencoding> ] -i <docid> -D
+   xadump [ -d <dbdir> ] [ -e <outputencoding> ] -i <docid> -X
+   xadump [ -d <dbdir> ] [ -e <outputencoding> ] -i <docid> [ -x ] -T
+   xadump [ -d <dbdir> ] [ -e <outputencoding> ] -i <docid> [ -x ] -r
+
+   xadump [ -d <dbdir> ] [ -e <outputencoding> ] -t <term> -E
+   xadump [ -d <dbdir> ] [ -e <outputencoding> ] -t <term> -F
+   xadump [ -d <dbdir> ] [ -e <outputencoding> ] -t <term> -P
+
+   xadump -T [ -f ] [ -n ] [ -l ]
+
+   xadump -q term [term ...]
+
+DESCRIPTION
+
+   The xadump command is a low-level access and diagnostic tool for a Xapian
+   index as organized by the Recoll indexer. The index directory to be used
+   is specified with option -d.
+
+   Options -D, -X, -T and -r take a single docid argument specified with
+   option -i. -D displays the document data record. -X deletes all index data
+   for the document. -T prints the term list for the document. Without a
+   docid argument, this option will list the whole index term list. -f can be
+   set to precede each term with its occurrence count (only if no docid is
+   specified). -n can be set to omit the enclosing brackets. -l can be set to
+   skip prefixed terms. -r prints the document text as reconstructed from
+   index data.
+
+   When option -x is set, terms are printed with each character separated by
+   a space, which can be useful to check some encoding issues.
+
+   Options -E, -F and -P all need a term argument, specified with -t <term>.
+   -E performs a term existence test. -F retrieves the term frequency for the
+   given term. -P displays the postings for the given term.
+
+   With option -q, xadump performs a simple AND query on the index, using the
+   given term arguments.
+
+   ══════════════════════════════════════════════════════════════════════════

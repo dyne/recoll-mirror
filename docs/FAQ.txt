@@ -1,0 +1,105 @@
+    
+   Links
+
+     • FAQS and Howtos index
+     • Recoll home
+     • Downloads
+     • Documentation
+     • Support
+
+   Table of Contents
+
+     • Faqs and Howtos
+
+          • Indexing
+          • Searching
+          • Administration and miscellaneous
+
+Faqs and Howtos
+
+   Full file index
+
+  Indexing
+
+     • Log files setup and usage
+
+     • Investigating indexing issues
+
+     • Indexing Joplin notes
+
+     • Using OpenAI Whisper to transcribe speech to text
+
+     • Preventing the indexing of a directory
+
+     • Creating and using multiple indexes
+
+     • Using Cgroups to limit indexing CPU Usage
+
+     • Indexing arbitrary mail headers
+
+     • Starting/stopping the indexer depending on power/battery status
+
+     • Indexing Outlook archives
+
+     • Indexing Mozilla Sunbird / Lightning calendar data
+
+     • Indexing Web history with the Firefox browser extension
+
+     • Extending the Web queue mechanism to other browsers and general WEB
+       indexing
+
+     • Generating a custom field and using it to sort results
+
+     • An example of filter/field customisation, using XMP metadata with PDFs
+
+     • Filtering out Zip archive members
+
+  Searching
+
+     • Linux: opening email messages in your desktop email client
+
+     • Installing and running the Recoll WebUI on Windows
+
+     • Using LibreOffice Python Macros with Recoll
+
+     • Recoll GUI keyboard navigation
+
+     • On the desktop: using a keyboard shortcut for starting/hiding recoll
+
+     • Handling issues for starting native apps, esp. email clients - getting
+       Thunderbird to open message files
+
+     • Another example open helper script - using qpdfview to open pdf and
+       postscript files, with support for page and search options
+
+     • Using the new Open With menu in recoll 1.20 with a custom app
+
+     • Replacing the document category filters
+
+     • Result list thumbnails and how to create them
+
+     • Interfacing Recoll and Mutt
+
+     • Querying from a C program
+
+  Administration and miscellaneous
+
+     • Sharing an index for common documents
+
+     • Collecting diagnostic information
+
+     • Using Cgroups to limit indexing CPU Usage
+
+     • Installation of the Recoll WebUI with Apache
+
+     • Installing a handler for a new document type
+
+     • Recoll configuration backup
+
+     • Tidying Recoll data storage
+
+     • Unix and non-ascii file names
+
+     • Recoll filters
+
+   Last updated 2026-02-18 17:34:24 +0100
